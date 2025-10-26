@@ -1,34 +1,23 @@
 {
   "expo": {
-    "name": "Smartbookr-mobile",
-    "slug": "Smartbookr-mobile",
+    "name": "smartbookr-mobile",
+    "slug": "smartbookr-mobile",  
     "version": "1.0.0",
     "orientation": "portrait",
     "platforms": ["android", "ios"],
     "icon": "./assets/images/icon.png",
     "scheme": "smartbookrmobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "package": "com.cois1706.Smartbookr",
+      "package": "com.cois1706.smartbookr",
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#E6F4FE"
       },
-      "android": {
-  "package": "com.cois1706.Smartbookr",
-  "useNextNotificationsApi": true,
-  "adaptiveIcon": {
-    "backgroundColor": "#E6F4FE",
-    "foregroundImage": "./assets/images/android-icon-foreground.png"
-  }
-},
-
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
