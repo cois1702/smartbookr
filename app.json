@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "smartbookr-mobile",
-    "slug": "smartbookr-mobile",  
+    "name": "SmartBookr-mobile",
+    "slug": "smartbookr-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "platforms": ["android", "ios"],
@@ -42,7 +42,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "547bf046-38e5-4645-a722-db9441018587"
+        "projectId": "a2b97cd6-f4da-461f-a956-7ca3d4073877"
       }
     }
   }
