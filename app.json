@@ -15,7 +15,7 @@
       "package": "com.cois1706.smartbookr",
       "useNextNotificationsApi": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/android_icon_foreground.png",
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
