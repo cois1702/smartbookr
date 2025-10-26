@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "SmartBookr Mobile",
+    "slug": "smartbookr-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",  // Replace with your app icon path
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png", // Replace with your splash image path
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.cois1706.smartbookrmobile",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png", // optional
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a2b97cd6-f4da-461f-a956-7ca3d4073877"
+      }
+    },
+    "entryPoint": "./App.js"
+  }
+}
