@@ -1,82 +1,86 @@
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
-import { ExternalLink } from '../../components/external-link';
-import ParallaxScrollView from '../../components/parallax-scroll-view';
-import { ThemedText } from '../../components/themed-text';
-import { ThemedView } from '../../components/themed-view';
-import { Collapsible } from '../../components/ui/collapsible';
-import { IconSymbol } from '../../components/ui/icon-symbol';
-import { Fonts } from '../../constants/theme';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
-export default function ExploreScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
+// Configure notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true
+  })
+});
+
+export default function App() {
+  const [expoPushToken, setExpoPushToken] = useState('');
+
+  // Register for push notifications
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => {
+      if (token) {
+        setExpoPushToken(token);
+        console.log('Expo push token:', token);
+
+        // Send token to your backend
+        fetch('https://smartbookr.homeworkplanner.co.za/save_push_token.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 123, // Replace with actual logged-in user ID
+            expo_token: token
+          })
+        })
+        .then(res => res.json())
+        .then(data => console.log('Token saved:', data))
+        .catch(err => console.error('Error sending token:', err));
       }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title" style={{ fontFamily: Fonts.rounded }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
+    });
+  }, []);
 
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
+  // Listen for notifications while app is open
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received:', notification);
+    });
+    return () => subscription.remove();
+  }, []);
 
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText> sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, use <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes for different screen densities.
-        </ThemedText>
-        <Image
-          source={require('../../assets/images/react_logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect the current color scheme.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-    </ParallaxScrollView>
+  return (
+    <View style={styles.container}>
+      {/* THIS IS THE CRITICAL PART: Loading the live website URL */}
+      <WebView
+        source={{ uri: 'https://smartbookr.homeworkplanner.co.za' }}
+        style={{ flex: 1 }}
+        startInLoadingState
+        scalesPageToFit
+      />
+    </View>
   );
 }
 
+// Helper function for push notifications
+async function registerForPushNotificationsAsync() {
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    alert('Failed to get push token!');
+    return;
+  }
+
+  const tokenData = await Notifications.getExpoPushTokenAsync({
+    projectId: 'a2b97cd6-f4da-461f-a956-7ca3d4073877'
+  });
+
+  return tokenData.data;
+}
+
 const styles = StyleSheet.create({
-  headerImage: { color: '#808080', bottom: -90, left: -35, position: 'absolute' },
-  titleContainer: { flexDirection: 'row', gap: 8 },
+  container: { flex: 1 },
 });
