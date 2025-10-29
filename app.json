@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.cois1706.smartbookr",
+      "package": "com.deriv1701.smartbookr",
       "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android_icon_foreground.png",
@@ -44,13 +44,16 @@
         }
       ]
     ],
-        "experiments": {
+    "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "owner": "cois1706",
+    "owner": "deriv1701",
     "extra": {
-      "eas": {}
+      "eas": {
+        "projectId": "7cae2cf6-6494-4d11-bf53-dff4ce58b255"
+      },
+      "router": {}
     }
   }
 }
