@@ -1,86 +1,142 @@
-import * as Notifications from 'expo-notifications';
-import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import 'react-native-gesture-handler'; // Must be first import for navigation
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Provider as PaperProvider } from 'react-native-paper';
 
-// Configure notifications
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true
-  })
-});
+// --- Import all screens ---
+// Client Screens (Booking Flow)
+import BusinessListingScreen from './screens/client/BusinessListingScreen';
+import ServiceSelectionScreen from './screens/client/ServiceSelectionScreen';
+import BookingConfirmationScreen from './screens/client/BookingConfirmationScreen';
 
-export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState('');
+// Business Screens (Management Flow)
+import LoginScreen from './screens/business/LoginScreen';
+import RegistrationScreen from './screens/business/RegistrationScreen';
+import BusinessDashboardScreen from './screens/business/BusinessDashboardScreen';
+import StaffManagementScreen from './screens/business/StaffManagementScreen';
+import BookingManagementScreen from './screens/business/BookingManagementScreen';
 
-  // Register for push notifications
-  useEffect(() => {
-    registerForPushNotificationsAsync().then(token => {
-      if (token) {
-        setExpoPushToken(token);
-        console.log('Expo push token:', token);
+// --- Stack Navigators ---
 
-        // Send token to your backend
-        fetch('https://smartbookr.homeworkplanner.co.za/save_push_token.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: 123, // Replace with actual logged-in user ID
-            expo_token: token
-          })
-        })
-        .then(res => res.json())
-        .then(data => console.log('Token saved:', data))
-        .catch(err => console.error('Error sending token:', err));
-      }
-    });
-  }, []);
+// 1. Client Booking Stack
+const ClientStack = createStackNavigator();
 
-  // Listen for notifications while app is open
-  useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received:', notification);
-    });
-    return () => subscription.remove();
-  }, []);
-
+function ClientAppStack() {
   return (
-    <View style={styles.container}>
-      {/* WebView loads your website */}
-      <WebView
-        source={{ uri: 'https://smartbookr.homeworkplanner.co.za' }}
-        style={{ flex: 1 }}
-        startInLoadingState
-        scalesPageToFit
+    <ClientStack.Navigator 
+      initialRouteName="BusinessListing"
+      screenOptions={{
+        headerStyle: { backgroundColor: '#1E88E5' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+      }}
+    >
+      <ClientStack.Screen 
+        name="BusinessListing" 
+        component={BusinessListingScreen} 
+        options={{ title: 'Find a Business' }} 
       />
-    </View>
+      <ClientStack.Screen 
+        name="ServiceSelection" 
+        component={ServiceSelectionScreen} 
+        options={({ route }) => ({ title: route.params.businessName || 'Select Service' })}
+      />
+      <ClientStack.Screen 
+        name="BookingConfirmation" 
+        component={BookingConfirmationScreen} 
+        options={{ title: 'Confirm Booking' }} 
+      />
+    </ClientStack.Navigator>
   );
 }
 
-// Helper function for push notifications
-async function registerForPushNotificationsAsync() {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+// 2. Business Management Stack
+const BusinessStack = createStackNavigator();
 
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
-    alert('Failed to get push token!');
-    return;
-  }
-
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: 'a2b97cd6-f4da-461f-a956-7ca3d4073877'
-  });
-
-  return tokenData.data;
+function BusinessAppStack() {
+  return (
+    <BusinessStack.Navigator 
+      initialRouteName="BusinessLogin"
+      screenOptions={{
+        headerStyle: { backgroundColor: '#00796B' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+      }}
+    >
+      <BusinessStack.Screen 
+        name="BusinessLogin" 
+        component={LoginScreen} 
+        options={{ title: 'Business Login' }} 
+      />
+      <BusinessStack.Screen 
+        name="BusinessRegistration" 
+        component={RegistrationScreen} 
+        options={{ title: 'Register Your Business' }} 
+      />
+      <BusinessStack.Screen 
+        name="Dashboard" 
+        component={BusinessDashboardScreen} 
+        options={{ title: 'Dashboard', headerLeft: () => null }} // Disable back button after login
+      />
+      <BusinessStack.Screen 
+        name="StaffManagement" 
+        component={StaffManagementScreen} 
+        options={{ title: 'Manage Staff' }} 
+      />
+      <BusinessStack.Screen 
+        name="BookingManagement" 
+        component={BookingManagementScreen} 
+        options={{ title: 'Manage Bookings' }} 
+      />
+    </BusinessStack.Navigator>
+  );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});
+// --- Main App Component ---
+
+// NOTE: For demonstration, we will start with the Client App. 
+// In a real application, you would use authentication state 
+// to decide which stack to render.
+
+export default function App() {
+  // To test the Business App flow, change ClientAppStack to BusinessAppStack below.
+  const MainStack = ClientAppStack; 
+
+  return (
+    <PaperProvider>
+      <NavigationContainer>
+        <MainStack />
+      </NavigationContainer>
+    </PaperProvider>
+  );
+}
+```
+eof
+
+### ⚠️ **CRITICAL: New Dependencies Required**
+
+Since this file introduces navigation, you must install the following libraries before you can build the APK/AAB:
+
+```bash
+# Install the core navigation library
+npm install @react-navigation/native
+
+# Install the stack navigator (for screen transitions) and its dependencies
+npx expo install @react-navigation/stack react-native-screens react-native-safe-area-context
+```
+
+### 🚀 Next Steps to Build the APK
+
+1.  **Run the installation commands above.**
+2.  **Restart your Expo server** (`npx expo start -c`).
+3.  **To Build the APK (Android):**
+    ```bash
+    npx expo run:android 
+    # OR for production build (.aab):
+    npx eas build -p android --profile production
+    ```
+4.  **To Build for iOS:**
+    ```bash
+    npx eas build -p ios --profile production
+    

@@ -1,0 +1,177 @@
+// screens/client/BookingConfirmationScreen.js
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+// Ensure all Paper components are imported from react-native-paper:
+import { Title, Button, TextInput, Card } from 'react-native-paper'; 
+import { submitClientBooking } from '../../api/api'; 
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+export default function BookingConfirmationScreen({ route, navigation }) {
+    // Data passed from the Service Selection Screen
+    const { businessId, service, slot, staffId } = route.params;
+
+    // State for client details
+    const [clientName, setClientName] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
+    const [clientPhone, setClientPhone] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    // Helper function for reliable date formatting
+    const formatDate = (isoTime) => {
+        const date = new Date(isoTime);
+        // Use South African locale for date, ensuring consistency
+        const datePart = date.toLocaleDateString('en-ZA'); 
+        return datePart;
+    };
+    
+    // --- Core Submission Logic ---
+    const handleSubmitBooking = async () => {
+        if (!clientName.trim() || !clientEmail.trim() || !clientPhone.trim()) {
+            Alert.alert('Missing Details', 'Please provide your full name, email, and phone number to confirm the booking.');
+            return;
+        }
+
+        setLoading(true);
+
+        const bookingPayload = {
+            business_id: businessId,
+            staff_id: staffId,
+            service_id: service.id,
+            start_time: slot.start_time, // Full YYYY-MM-DD HH:MM:SS format
+            end_time: slot.end_time,     // Full YYYY-MM-DD HH:MM:SS format
+            client_name: clientName.trim(),
+            client_email: clientEmail.trim(),
+            client_phone: clientPhone.trim(),
+        };
+
+        try {
+            const response = await submitClientBooking(bookingPayload);
+
+            if (response.data.status === 'success') {
+                const displayDate = formatDate(slot.start_time);
+                
+                Alert.alert(
+                    'Booking Confirmed! 🎉', 
+                    `Your ${service.name} appointment with ${slot.staff_name} on ${displayDate} at ${slot.time_display} is booked.`
+                );
+                // Navigate back to the main business list after a successful booking
+                navigation.popToTop(); 
+            } else {
+                // Handles errors like a race condition (slot taken)
+                Alert.alert('Booking Failed', response.data.message || 'There was an error processing your booking. Please select a new slot.');
+            }
+        } catch (error) {
+            console.error('Submission Error:', error.response ? error.response.data : error);
+            const errorMessage = error.response && error.response.data && error.response.data.message
+                ? error.response.data.message 
+                : 'Could not connect to the booking service. Check your network.';
+            Alert.alert('Network Error', errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const displayDate = formatDate(slot.start_time);
+    const displayTime = slot.time_display; // e.g., "11:00 - 11:45"
+
+    return (
+        <ScrollView style={styles.container}>
+            <Title style={styles.header}>Confirm Your Details</Title>
+
+            {/* Booking Summary Card */}
+            <Card style={styles.summaryCard}>
+                <Card.Content>
+                    <Text style={styles.summaryTitle}>Appointment Summary</Text>
+                    <Text style={styles.summaryDetail}>
+                        <MaterialCommunityIcons name="calendar-clock" size={16} /> Date & Time: 
+                        <Text style={styles.boldDetail}> {displayDate} at {displayTime}</Text>
+                    </Text>
+                    <Text style={styles.summaryDetail}>
+                        <MaterialCommunityIcons name="briefcase-outline" size={16} /> Service: 
+                        <Text style={styles.boldDetail}> {service.name} ({service.duration} min)</Text>
+                    </Text>
+                    <Text style={styles.summaryDetail}>
+                        <MaterialCommunityIcons name="account-tie" size={16} /> Staff: 
+                        <Text style={styles.boldDetail}> {slot.staff_name}</Text>
+                    </Text>
+                    <Text style={styles.summaryPrice}>
+                        {/* Using currency-zaf for South African Rand context */}
+                        <MaterialCommunityIcons name="currency-zaf" size={18} /> Est. Price: R{service.price}
+                    </Text>
+                </Card.Content>
+            </Card>
+
+            {/* Client Details Form */}
+            <View style={styles.formContainer}>
+                <Text style={styles.formTitle}>Your Contact Information</Text>
+                <TextInput
+                    label="Full Name"
+                    value={clientName}
+                    onChangeText={setClientName}
+                    mode="outlined"
+                    style={styles.input}
+                    disabled={loading} 
+                />
+                <TextInput
+                    label="Email Address"
+                    value={clientEmail}
+                    onChangeText={setClientEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    mode="outlined"
+                    style={styles.input}
+                    disabled={loading} 
+                />
+                <TextInput
+                    label="Phone Number"
+                    value={clientPhone}
+                    onChangeText={setClientPhone}
+                    keyboardType="phone-pad"
+                    mode="outlined"
+                    style={styles.input}
+                    disabled={loading} 
+                />
+            </View>
+
+            {/* Submit Button */}
+            <Button
+                mode="contained"
+                onPress={handleSubmitBooking}
+                loading={loading}
+                disabled={loading}
+                icon="check-circle"
+                style={styles.submitButton}
+                labelStyle={styles.submitButtonLabel}
+            >
+                {loading ? 'Submitting Booking...' : 'Confirm & Book Now'}
+            </Button>
+            
+            <Text style={styles.note}>
+                By confirming, you agree to receive SMS/Email reminders from the business.
+            </Text>
+
+        </ScrollView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#f0f4f7', padding: 15 },
+    header: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#1E88E5', textAlign: 'center' },
+
+    // Summary Card
+    summaryCard: { marginVertical: 10, elevation: 4, borderRadius: 10 },
+    summaryTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: '#00796B' },
+    summaryDetail: { fontSize: 16, marginBottom: 5, color: '#555' },
+    summaryPrice: { fontSize: 18, fontWeight: 'bold', color: '#D84315', marginTop: 10 },
+    boldDetail: { fontWeight: '600' },
+
+    // Form
+    formContainer: { backgroundColor: 'white', padding: 15, borderRadius: 10, marginTop: 15, elevation: 2 },
+    formTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
+    input: { marginBottom: 10 },
+
+    // Button
+    submitButton: { marginVertical: 20, paddingVertical: 5, backgroundColor: '#00796B' },
+    submitButtonLabel: { fontSize: 18, fontWeight: 'bold' },
+    note: { textAlign: 'center', fontSize: 12, color: '#888', marginBottom: 20 },
+});

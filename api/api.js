@@ -5,7 +5,7 @@ const SMARTBOOKR_API_BASE = 'https://yourdomain.co.za/api/smartbookr';
 
 
 // -----------------------------------------------------------------
-// 1. REGISTRATION & AUTHENTICATION
+// 1. REGISTRATION & AUTHENTICATION (Business)
 // -----------------------------------------------------------------
 
 /**
@@ -26,7 +26,7 @@ export const loginBusiness = async (credentials) => {
 
 
 // -----------------------------------------------------------------
-// 2. CORE BOOKING & MANAGEMENT FUNCTIONS (Require Token)
+// 2. CORE MANAGEMENT FUNCTIONS (Require Token)
 // -----------------------------------------------------------------
 
 /**
@@ -49,7 +49,7 @@ export const fetchSchedule = async (token) => {
 };
 
 /**
- * Creates a new client booking.
+ * Creates a new client booking (used by business staff).
  * (POST to create_booking.php)
  */
 export const createBooking = async (token, bookingPayload) => {
@@ -70,4 +70,51 @@ export const manageStaff = async (token, staffPayload = null) => {
         const response = await axios.get(`${SMARTBOOKR_API_BASE}/manage_staff.php`, getConfig(token));
         return response.data;
     }
+};
+
+/**
+ * Deletes a staff member by ID.
+ * (DELETE to manage_staff.php)
+ */
+export const deleteStaff = async (token, staffId) => {
+    return axios.delete(`${SMARTBOOKR_API_BASE}/manage_staff.php`, {
+        ...getConfig(token),
+        data: { staff_id: staffId } // DELETE request payload is sent in the 'data' field
+    });
+};
+
+
+// -----------------------------------------------------------------
+// 3. CLIENT-FACING BOOKING APIs (No Token Required)
+// -----------------------------------------------------------------
+
+/**
+ * Fetches the list of all available businesses for the client view.
+ * (GET to fetch_businesses.php)
+ */
+export const fetchBusinesses = async () => {
+    const response = await axios.get(`${SMARTBOOKR_API_BASE}/fetch_businesses.php`);
+    return response.data;
+};
+
+/**
+ * Fetches available time slots for a service at a specific business on a specific date.
+ * (GET to fetch_availability.php)
+ */
+export const fetchAvailability = async (businessId, date, serviceId) => {
+    return axios.get(`${SMARTBOOKR_API_BASE}/fetch_availability.php`, {
+        params: {
+            business_id: businessId,
+            date: date,
+            service_id: serviceId,
+        }
+    });
+};
+
+/**
+ * Submits a new client booking for a chosen slot.
+ * (POST to submit_client_booking.php)
+ */
+export const submitClientBooking = async (bookingData) => {
+    return axios.post(`${SMARTBOOKR_API_BASE}/submit_client_booking.php`, bookingData);
 };
